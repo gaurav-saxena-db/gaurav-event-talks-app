@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Event Schedule</title>
+    <style>
+        
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        color: #333;
+    }
+    .container {
+        max-width: 960px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .search-container {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .search-container input {
+        width: 80%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .schedule-item {
+        background-color: #f9f9f9;
+        border: 1px solid #eee;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+    }
+    .schedule-item.lunch {
+        background-color: #e0f7fa;
+        text-align: center;
+        font-weight: bold;
+    }
+    .schedule-item h2 {
+        color: #0056b3;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    .schedule-item .time {
+        font-weight: bold;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    .schedule-item .speakers {
+        font-style: italic;
+        margin-bottom: 5px;
+    }
+    .schedule-item .category {
+        display: inline-block;
+        background-color: #007bff;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 0.8em;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    .schedule-item p {
+        line-height: 1.6;
+        margin-top: 10px;
+    }
+    .hidden {
+        display: none;
+    }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>1-Day Tech Event Schedule</h1>
+        
+        <div class="search-container">
+            <input type="text" id="categorySearch" placeholder="Search by category (e.g., AI, Web Development)">
+        </div>
+
+        <div id="schedule">
+            <!-- Schedule items will be rendered here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        
+    const talksData = ${JSON.stringify(talksData)};
+    const eventStartTime = new Date();
+    eventStartTime.setHours(10, 0, 0); // Event starts at 10:00 AM
+
+    function renderSchedule(filterCategory = '') {
+        const scheduleContainer = document.getElementById('schedule');
+        scheduleContainer.innerHTML = '';
+        let currentTime = new Date(eventStartTime);
+        let talkIndex = 0;
+
+        talksData.forEach((talk, index) => {
+            // Check for lunch break after the 3rd talk (index 2)
+            if (index === 3) { // After 3rd talk, so it affects 4th talk onwards
+                const lunchEndTime = new Date(currentTime.getTime() + 60 * 60 * 1000); // 1 hour lunch
+                scheduleContainer.innerHTML += `
+                    <div class="schedule-item lunch">
+                        <div class="time">${formatTime(currentTime)} - ${formatTime(lunchEndTime)}</div>
+                        <h2>Lunch Break</h2>
+                    </div>
+                `;
+                currentTime = new Date(lunchEndTime);
+            }
+
+            const talkEndTime = new Date(currentTime.getTime() + talk.duration * 60 * 1000); // talk duration
+            const categoriesHtml = talk.category.map(cat => `<span class="category">${cat}</span>`).join('');
+            const speakersHtml = talk.speakers.join(', ');
+
+            const isHidden = filterCategory && !talk.category.some(cat => cat.toLowerCase().includes(filterCategory.toLowerCase()));
+
+            scheduleContainer.innerHTML += `
+                <div class="schedule-item ${isHidden ? 'hidden' : ''}" data-categories="${talk.category.join(',').toLowerCase()}">
+                    <div class="time">${formatTime(currentTime)} - ${formatTime(talkEndTime)}</div>
+                    <h2>${talk.title}</h2>
+                    <div class="speakers">Speakers: ${speakersHtml}</div>
+                    <div>${categoriesHtml}</div>
+                    <p>${talk.description}</p>
+                </div>
+            `;
+
+            currentTime = new Date(talkEndTime.getTime() + 10 * 60 * 1000); // 10 minutes transition
+        });
+    }
+
+    function formatTime(date) {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderSchedule();
+
+        const searchInput = document.getElementById('categorySearch');
+        searchInput.addEventListener('keyup', (event) => {
+            renderSchedule(event.target.value);
+        });
+    });
+
+    </script>
+</body>
+</html>
